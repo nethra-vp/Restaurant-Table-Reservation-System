@@ -1,0 +1,17 @@
+npm install cors dotenv express nodemon mongoose multer jsonwebtoken clodinary
+
+cors - a security feature in web browser that restricts all resources on the server can be accessed from different domain.
+
+dotenv - package that loads the env variable from a dotenv file keeping sensitive data like our API key and it secures and separates it from the code. 
+
+express - package used to handle server request 
+
+nodemon - a tool that automatically restarts a NodeJS application when it detects a file change.
+
+mongoose - library for working with our mongoDB in NodeJS. It helps us structure, define schemas and interact with our database easily.
+
+multer - which serve as a middleware for uploading file upload in NodeJS and is used to process images, PDFs and other files sent. (we are using multer to process image upload for the menu).
+
+jsonwebtoken - which is a package used for creating and verifying JSON web tokens which help us with user authentication and authorization
+
+cloudinary - which is a cloud based service that helps store and manage and optimize images and video that often use for uploading and saving media files. (we are using cloudinary for image )
