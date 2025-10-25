@@ -4,7 +4,7 @@ import {createReservation, getAllReservations, deleteReservation} from '../contr
 const router = express.Router()
 
 router.post('/create', createReservation)
-router.get('/all', getAllReservations)
+router.get('/get', getAllReservations)
 router.delete('/delete/:id', deleteReservation)
 
 export default router

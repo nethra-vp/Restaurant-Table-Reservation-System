@@ -1,4 +1,4 @@
-import connectCloudinary from "../config/cloudinary.js" //2:24:40 - different import statement used
+import { cloudinary } from "../config/cloudinary.js" //2:24:40 - different import statement used
 import productModel from '../models/productModels.js'
 
 const addProduct = async (req, res) => {
@@ -6,10 +6,23 @@ const addProduct = async (req, res) => {
         const {name, price, description, category} = req.body
         const image = req.file;
         let imageUrl = ""
-        if(image) {
-            let result = await cloudinary.uploader.upload(image.path, {resource_type: 'image'})
-            imageUrl = result.secure_url
+
+        if (image) {
+        const result = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream({ 
+                resource_type: "image" }, 
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+
+            stream.end(image.buffer); 
+        });
+
+        imageUrl = result.secure_url;
         }
+        
         else {
             imageUrl = "https://via.placeholder.com/150"
         }

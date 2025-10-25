@@ -1,20 +1,33 @@
 import jwt from 'jsonwebtoken'
 
-const adminAuth = async (req ,res, next) => {
+const adminAuth = async (req, res, next) => {
     try {
-        const {token} = req.headers
-        if(!token) {
-            return res.json({success:false, message: 'Unauthorised User'})
+        // Support both standard Authorization: 'Bearer <token>' and legacy token header
+        const authHeader = req.headers['authorization'] || req.headers['Authorization'] || req.headers['token']
+
+        let token = null
+        if (authHeader && typeof authHeader === 'string') {
+            if (authHeader.startsWith('Bearer ')) {
+                token = authHeader.split(' ')[1]
+            } else {
+                // either a direct token value or other header form
+                token = authHeader
+            }
+        }
+
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'Unauthorised User' })
         }
 
         const token_decode = jwt.verify(token, process.env.JWT_SECRET)
-        if(token_decode !== process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD) {
-            return res.json({success:false, message: 'User is not authorized'})
+        const expected = process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD
+        if (token_decode !== expected) {
+            return res.status(403).json({ success: false, message: 'User is not authorized' })
         }
+
         next()
-    }
-    catch(err) {
-        return res.json({success:false, message: err.message})
+    } catch (err) {
+        return res.status(401).json({ success: false, message: err.message })
     }
 }
 

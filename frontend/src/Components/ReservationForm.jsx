@@ -1,4 +1,7 @@
 import React, {useState} from 'react'
+import { backendUrl } from '../App'
+import { toast } from 'react-toastify'
+import axios from 'axios'
 
 const ReservationForm = () => {
 
@@ -12,6 +15,27 @@ const ReservationForm = () => {
 
   const handleChanges = (e) => {
     setFormData({...formData, [e.target.name]: e.target.value})
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      await axios.post(backendUrl + "/api/reservations/create", formData)
+      toast.success("Reservation Successful")
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        date: "",
+        time: "",
+        guests: ""
+      })
+    } catch (error) {
+      console.log(error);
+      
+    }
   }
 
   const generateTimeSlots = () => {
@@ -31,7 +55,7 @@ const ReservationForm = () => {
   return (
     <div className='min-h-screen bg-[#ffe2b7] p-6 md:p-12'>
       <div className='max-w-6xl mx-auto grid md:grid-cols-3 gap-8'>
-        <form className='md:col-span-2 bg-white p-8 rounded-lg shadow-md'>
+        <form onSubmit={handleSubmit} className='md:col-span-2 bg-white p-8 rounded-lg shadow-md'>
           <h2 className='text-xl font-semibold text-amber-400 uppercase tracking-wider'>Reserve a Table</h2>
           <h1 className='text-3xl font-bold mb-4'>Dine With Us - <span className='text-amber-500'>Reserve Now</span></h1>
           <div className='grid md:grid-cols-2 gap-4'>
