@@ -6,9 +6,15 @@ import ReservationForm from '../Components/ReservationForm'
 const Homepage = () => {
   return (
     <div>
-      <Hero/>
-      <Menu/>
-      <ReservationForm/>
+      <div id = 'home'>
+        <Hero/>
+      </div>
+      <div id = 'menu'>
+        <Menu/>
+      </div>
+      <div id = 'reservations'>
+        <ReservationForm/>
+      </div>
     </div>
   )
 }

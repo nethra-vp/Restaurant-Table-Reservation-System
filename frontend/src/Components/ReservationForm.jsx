@@ -40,7 +40,7 @@ const ReservationForm = () => {
 
   const generateTimeSlots = () => {
     const slots = []
-    for(let hour = 9; hour < 21; hour++) {
+    for(let hour = 11; hour < 21; hour++) {
       const startHour = hour % 12 === 0 ? 12 : hour % 12 
       const startPeriod = hour < 12 ? "AM" : "PM"
 
@@ -99,19 +99,12 @@ const ReservationForm = () => {
         <div className='bg-black text-gray-300 p-8 rounded-lg shadow-md space-y-10'>
           <div>
             <h3 className='text-lg font-bold'>Address</h3>
-            <p>123, Abc Street, Some City, State, Country</p>
+            <p>Adyar, Karnataka - 575007</p>
           </div>
           <div>
             <h3 className='text-lg font-bold'>Open Time</h3>
             <p>Mon - Fri: 11:00 AM - 10:00 PM</p>
             <p>Sat - Sun: 09:00 AM - 11:00 PM</p>
-          </div>
-          <div>
-            <h3 className='text-lg font-bold'>Stay Connected</h3>
-            <div>
-              <p>Some Logos Here</p>
-              {/* Part of video : 1:02:00 */}
-            </div>
           </div>
         </div>
       </div>
