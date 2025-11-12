@@ -7,10 +7,19 @@ const AdminTable = () => {
   const [reservations, setReservations] = useState([])
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this reservation?")
+    if(!confirmDelete) return;
+
     try {
-      await axios.delete(`${backendUrl}/api/reservations/delete/${id}`)
-      toast.success('Reservation removed')
-      setReservations(prev => prev.filter(res => res._id !== id))
+      const response = await axios.delete(`${backendUrl}/api/reservations/delete/${id}`)
+
+      if(response.data.success) {
+        toast.success(response.data.message || 'Reservation removed')
+        setReservations(prev => prev.filter(res => res._id !== id))
+      }
+      else {
+        toast.error(response.data.message || "Failed to delete reservation")
+      }
     } catch (error) {
       console.log("Error deleting reservation");
       toast.error("Failed to delete reservation")

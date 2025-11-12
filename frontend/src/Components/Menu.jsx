@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { backendUrl } from '../App' // make sure this is defined in your frontend App.jsx
+import { backendUrl } from '../App'
 
 const Menu = () => {
   const [products, setProducts] = useState([])
@@ -58,7 +58,7 @@ const Menu = () => {
               key={index}
               onClick={() => {
                 setCategory(cat)
-                setShowAll(false) // reset collapse when switching categories
+                setShowAll(false)
               }}
               className={`cursor-pointer px-6 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
                 category === cat ? 'bg-amber-500 text-white' : 'bg-gray-200 hover:bg-amber-100'

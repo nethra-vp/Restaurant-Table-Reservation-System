@@ -73,7 +73,7 @@ const ReservationForm = () => {
             </div>
             <div className='grid gap-1.5'>
               <label htmlFor="" className='font-bold'>Reservation Date: </label>
-              <input type="date" name='date' value={formData.date} onChange={handleChanges} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300'/>
+              <input type="date" name='date' value={formData.date} onChange={handleChanges} onClick={(e) => e.target.showPicker && e.target.showPicker()} min={new Date().toISOString().split("T")[0]} requiredclassName='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300'/>
             </div>
             <div className='grid gap-1.5'>
               <label htmlFor="" className='font-bold'>Time of Reservation: </label>
@@ -102,9 +102,8 @@ const ReservationForm = () => {
             <p>Adyar, Karnataka - 575007</p>
           </div>
           <div>
-            <h3 className='text-lg font-bold'>Open Time</h3>
-            <p>Mon - Fri: 11:00 AM - 10:00 PM</p>
-            <p>Sat - Sun: 09:00 AM - 11:00 PM</p>
+            <h3 className='text-lg font-bold'>Timings</h3>
+            <p>Mon - Sun: 11:00 AM - 09:00 PM</p>
           </div>
         </div>
       </div>

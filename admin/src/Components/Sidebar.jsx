@@ -3,6 +3,9 @@ import {NavLink} from 'react-router-dom'
 import {IoIosLogOut, IoMdAddCircleOutline} from 'react-icons/io'
 import {MdFormatListBulletedAdd} from 'react-icons/md'
 import {PiListBulletsFill} from 'react-icons/pi'
+import { BiSolidUserDetail } from "react-icons/bi";
+import { FaUserPlus } from "react-icons/fa6";
+import { MdTableBar } from "react-icons/md";
 
 const Sidebar = ({setToken}) => {
   return (
@@ -24,6 +27,21 @@ const Sidebar = ({setToken}) => {
         <NavLink to = '/table' className="flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-500 hover:text-white">
           <PiListBulletsFill className='text-[35px] text-black'/>
           <p className='hidden md:block text-base'>Reservations</p>
+        </NavLink>
+
+        <NavLink to = '/customers' className="flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-500 hover:text-white">
+          <BiSolidUserDetail className='text-[35px] text-black'/>
+          <p className='hidden md:block text-base'>Customers</p>
+        </NavLink>
+
+        <NavLink to = '/add-customer' className="flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-500 hover:text-white">
+          <FaUserPlus className='text-[35px] text-black'/>
+          <p className='hidden md:block text-base'>Add Customer</p>
+        </NavLink>
+
+        <NavLink to = '/tables' className="flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-500 hover:text-white">
+          <MdTableBar className='text-[35px] text-black'/>
+          <p className='hidden md:block text-base'>Tables</p>
         </NavLink>
 
         <button onClick = {() => setToken("")} className='flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-600 hover:text-white w-full text-left'>

@@ -15,7 +15,6 @@ const Footer = () => {
         <div>
           <h2 className='text-2xl font-bold text-gray-800'>Resto Bistro</h2>
           <div className='flex justify-center md:justify-start gap-4 mt-3 text-amber-500'>
-            {/* Icons - videp timing : 1:17:50 , styling = 1:23:34*/}
           </div>
         </div>
         <div>

@@ -6,6 +6,8 @@ import connectCloudinary from './config/cloudinary.js'
 import userRouter from './routes/userRoute.js'
 import productRouter from './routes/productRoute.js'
 import reservationRoute from './routes/reservationRoute.js'
+import customerRoutes from "./routes/customerRoutes.js"
+import tableRoutes from "./routes/tableRoutes.js"
 
 const app = express()
 
@@ -20,6 +22,8 @@ app.use(express.json())
 app.use('/api/user', userRouter)
 app.use('/api/product', productRouter)
 app.use('/api/reservations', reservationRoute)
+app.use("/api/customer", customerRoutes)
+app.use("/api/table", tableRoutes)
 
 app.get('/',(req,res) => {
     res.send("API Working")

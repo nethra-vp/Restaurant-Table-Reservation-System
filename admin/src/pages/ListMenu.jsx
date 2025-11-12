@@ -8,6 +8,9 @@ const ListMenu = ({token}) => {
   const [list, setList] = useState([])
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this item")
+    if(!confirmDelete) return;
+
     try {
       const response = await axios.post(
         backendUrl + '/api/product/remove', 

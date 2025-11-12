@@ -4,6 +4,9 @@ import Sidebar from './Components/Sidebar'
 import AddMenu from './pages/AddMenu'
 import ListMenu from './pages/ListMenu'
 import AdminTable from './pages/AdminTable'
+import ListCustomer from './pages/ListCustomer'
+import AddCustomer from './pages/AddCustomer'
+import ListTable from './pages/ListTable'
 import {Routes, Route, Navigate} from 'react-router-dom'
 import {ToastContainer} from 'react-toastify'
 
@@ -35,6 +38,9 @@ const App = () => {
                   <Route path = '/add' element = {<AddMenu token = {token}/>} />
                   <Route path = '/list' element = {<ListMenu token = {token}/>} />
                   <Route path = '/table' element = {<AdminTable token = {token} />} />
+                  <Route path = '/customers' element = {<ListCustomer token = {token} />} />
+                  <Route path = '/add-customer' element = {<AddCustomer token = {token} />} />
+                  <Route path = '/tables' element = {<ListTable token = {token} />} />
                 </Routes>
               </div>
             </div>

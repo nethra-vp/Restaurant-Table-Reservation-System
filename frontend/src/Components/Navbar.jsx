@@ -17,7 +17,7 @@ const Navbar = () => {
         <div>
           <ul className='flex justify-between gap-8'>
             <li className='font-bold text-lg cursor-pointer hover:text-amber-400' onClick={() => scrollToSection('home')}>HOME</li>
-            <li className='font-bold text-lg cursor-pointer hover:text-amber-400' onClick={() => scrollToSection('reservations')}>RESERVATIONS</li>
+            <li className='font-bold text-lg cursor-pointer hover:text-amber-400' onClick={() => scrollToSection('reservations')}>RESERVE TABLE</li>
             <li className='font-bold text-lg cursor-pointer hover:text-amber-400' onClick={() => scrollToSection('menu')}>MENU</li>
           </ul>
         </div>
