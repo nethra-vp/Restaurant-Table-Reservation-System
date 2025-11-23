@@ -74,11 +74,11 @@ const ReservationForm = () => {
             </div>
             <div className='grid gap-1.5'>
               <label htmlFor="" className='font-bold'>Reservation Date: </label>
-              <input type="date" name='date' value={formData.date} onChange={handleChanges} onClick={(e) => e.target.showPicker && e.target.showPicker()} min={new Date().toISOString().split("T")[0]} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300'/>
+              <input type="date" name='date' value={formData.date} onChange={handleChanges} onClick={(e) => e.target.showPicker && e.target.showPicker()} min={new Date().toISOString().split("T")[0]} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300 text-gray-500 font-normal'/>
             </div>
             <div className='grid gap-1.5'>
               <label htmlFor="" className='font-bold'>Time of Reservation: </label>
-              <select name='time' value={formData.time} onChange={handleChanges} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300'>
+              <select name='time' value={formData.time} onChange={handleChanges} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300 text-gray-500 font-normal'>
                 <option value="">Select Time</option>
                 {generateTimeSlots().map((slot, index) => (
                   <option key={index} value={slot}>{slot}</option>
@@ -87,7 +87,7 @@ const ReservationForm = () => {
             </div>
             <div className='grid gap-1.5'>
               <label htmlFor="" className='font-bold'>Number of Guest: </label>
-              <select name='guests' value={formData.guests} onChange={handleChanges}>
+              <select name='guests' value={formData.guests} onChange={handleChanges} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300 text-gray-500 font-normal'>
                 {[...Array(10).keys().map((i) => (
                   <option key={i + 1} value={i + 1} > {i + 1} Guest(s)</option>
                 ))]}
