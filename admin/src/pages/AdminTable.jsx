@@ -63,20 +63,25 @@ const AdminTable = () => {
             {
               reservations.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className='p-4 text-center'>No reservations found</td>
+                  <td colSpan="8" className='p-4 text-center'>No reservations found</td>
                 </tr>
               ) : (
-                reservations.map((res, index) => (
-                  <tr key = {index} className='border-b hover:bg-gray-50'>
+                reservations.map((res) => (
+                  <tr key={res.id || res._id} className='border-b hover:bg-gray-50'>
                     <td className='p-3'>{res.name}</td>
                     <td className='p-3'>{res.email}</td>
                     <td className='p-3'>{res.phone}</td>
                     <td className='p-3'>{res.date}</td>
                     <td className='p-3'>{res.time}</td>
-                    <td className='p-3'>{res.table?.tableNumber ?? '-'}</td>
+                    <td className='p-3'>
+                      {res.table?.tableNumber ?? '-'}
+                      {res.status === 'waiting' && (
+                        <span className='ml-2 text-sm text-yellow-700 font-semibold'>(Waiting)</span>
+                      )}
+                    </td>
                     <td className='p-3'>{res.guests}</td>
                     <td className='p-3'>
-                      <button onClick={() => handleDelete(res._id)} className='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600'>Delete</button>
+                      <button onClick={() => handleDelete(res.id || res._id)} className='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600'>Delete</button>
                     </td>
                   </tr>
                 ))

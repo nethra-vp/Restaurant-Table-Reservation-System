@@ -2,8 +2,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { Sequelize } from 'sequelize';
 import tableRoutes from './routes/tableRoutes.js';
+import { sequelize, connectMySQL } from './config/mysql.js';
 
 // Initialize Express app
 const app = express();
@@ -11,24 +11,12 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads'));
 
-// Initialize Sequelize
-const sequelize = new Sequelize('restaurant_db', 'root', '', {
-  host: 'localhost',
-  dialect: 'mysql',
-});
-
-// Test database connection
-try {
-  await sequelize.authenticate();
-  console.log('Connection has been established successfully.');
-} catch (error) {
-  console.error('Unable to connect to the database:', error);
-}
+// Ensure shared Sequelize instance from config is connected
+await connectMySQL();
 
 // Import models and sync
-import Table from './models/tableModel.js'; // ensure this path is correct
-// Table.initModel(sequelize); // if your model uses a custom init function
-await sequelize.sync({ alter: true }); // or { force: true } to reset tables
+import Table from './models/tableModel.js'; // imports use the shared sequelize
+await sequelize.sync({ alter: true }); // sync models defined on shared sequelize
 
 // Seed tables if none exist
 const tableCount = await Table.count();

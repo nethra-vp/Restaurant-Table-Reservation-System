@@ -23,12 +23,13 @@ const ReservationForm = () => {
 
     try {
       const response = await axios.post(backendUrl + "/api/reservations/create", formData);
-      // If backend returns assigned table, show it to the user
-      const assignedTable = response.data?.reservation?.table?.tableNumber || response.data?.tableNumber;
-      if (assignedTable) {
-        toast.success(`Reservation successful`);
+      const reservation = response.data?.reservation || response.data
+      if (reservation?.status === 'waiting') {
+        toast.info('No table available for the selected slot — you have been placed on the waiting list')
+      } else if (reservation?.table?.tableNumber) {
+        toast.success(`Reservation confirmed — Table ${reservation.table.tableNumber}`)
       } else {
-        toast.success("Reservation Successful");
+        toast.success('Reservation successful')
       }
       setFormData({
         name: "",
@@ -51,7 +52,7 @@ const ReservationForm = () => {
   const generateTimeSlots = () => {
     const slots = []
     for(let hour = 11; hour < 21; hour++) {
-      const startHour = hour % 12 === 0 ? 12 : hour % 12 
+      const startHour = hour % 12 === 0 ? 12 : hour % 12
       const startPeriod = hour < 12 ? "AM" : "PM"
 
       slots.push(`${startHour}:00 ${startPeriod}`)

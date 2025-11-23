@@ -49,16 +49,16 @@ const AddCustomer = () => {
       }
 
       const res = await axios.post(`${backendUrl}/api/reservations/create`, payload)
-
-      if (res.status === 201 || (res.data && res.data._id)) {
-        toast.success("Reservation created successfully!")
-        // reset form
-        setFormData({ name: "", email: "", phone: "", date: "", time: "", guests: "1" })
+      const reservation = res.data?.reservation || res.data
+      if (reservation?.status === 'waiting') {
+        toast.info('No table available for the selected slot — the reservation is on the waiting list')
+      } else if (reservation?.table?.tableNumber) {
+        toast.success(`Reservation confirmed — Table ${reservation.table.tableNumber}`)
       } else {
-        // Fallback: if backend returns success flag
-        if (res.data && res.data.message) toast.error(res.data.message)
-        else toast.error("Failed to create reservation")
+        toast.success('Reservation created successfully!')
       }
+      // reset form
+      setFormData({ name: "", email: "", phone: "", date: "", time: "", guests: "1" })
     } catch (error) {
       console.error(error)
       if (error.response && error.response.data && error.response.data.message) {

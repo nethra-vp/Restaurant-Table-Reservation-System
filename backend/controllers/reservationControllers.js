@@ -11,12 +11,54 @@ function mapId(instance) {
 
 // ----------- AUTO-ASSIGN TABLE ------------
 async function findSmallestAvailableTable(guests, date, time) {
+  // parse requested time slot into minutes since midnight
+  function parseSlot(slot) {
+    // expected format: "H:MM AM - H:MM PM" or similar
+    const parts = slot.split('-').map(s => s.trim());
+    const toMinutes = (t) => {
+      const [time, period] = t.split(' ');
+      const [h, m] = time.split(':').map(Number);
+      let hour = h % 12;
+      if (period.toUpperCase() === 'PM') hour += 12;
+      return hour * 60 + (m || 0);
+    }
+    try {
+      const start = toMinutes(parts[0]);
+      const end = toMinutes(parts[1]);
+      return { start, end };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const reqSlot = parseSlot(time);
+
   const tables = await Table.findAll({
-    where: { status: "Available", capacity: { [Op.gte]: guests } },
+    where: { capacity: { [Op.gte]: guests }, status: 'Available' },
     order: [["capacity", "ASC"]],
   });
 
-  return tables.length > 0 ? tables[0] : null;
+  // check each table for overlapping reservations on the same date
+  for (const table of tables) {
+    const existing = await Reservation.findAll({ where: { tableId: table.id, date } });
+    let conflict = false;
+      for (const ex of existing) {
+      const exSlot = parseSlot(ex.time);
+      // If either slot cannot be parsed, treat as a conflict to avoid double-booking
+      if (!reqSlot || !exSlot) {
+        conflict = true;
+        break;
+      }
+      // overlap if not (newEnd <= exStart || newStart >= exEnd)
+      if (!(reqSlot.end <= exSlot.start || reqSlot.start >= exSlot.end)) {
+        conflict = true;
+        break;
+      }
+    }
+    if (!conflict) return table;
+  }
+
+  return null;
 }
 
 // ----------- CREATE RESERVATION -----------
@@ -36,10 +78,15 @@ export const createReservation = async (req, res) => {
       return res.status(400).json({ message: "Cannot reserve past dates" });
     }
 
-    // Auto table assign
+    // Auto table assign (per date + time slot)
     const table = await findSmallestAvailableTable(guests, date, time);
+    let reservationStatus = 'confirmed';
+    let assignedTableId = null;
     if (!table) {
-      return res.status(400).json({ message: "No suitable table available for the selected time and guest count" });
+      // No suitable table for that date/time — place on waiting list
+      reservationStatus = 'waiting';
+    } else {
+      assignedTableId = table.id;
     }
 
     // Create or update customer
@@ -59,25 +106,28 @@ export const createReservation = async (req, res) => {
       date,
       time,
       guests,
-      tableId: table.id,
+      tableId: assignedTableId,
       customerId: customer.id,
+      status: reservationStatus,
     });
 
-    // mark table as reserved
-    await table.update({ status: "Reserved" });
+    // If confirmed, mark the table as Reserved and return assigned table details.
+    const response = { reservation: { ...mapId(reservation) } };
+    if (assignedTableId) {
+      // Update the table status to Reserved
+      await table.update({ status: "Reserved" });
+      // return the updated table info
+      response.reservation.table = {
+        _id: table.id,
+        tableNumber: table.tableNumber,
+        capacity: table.capacity,
+        status: table.status,
+      };
+    } else {
+      response.reservation.message = 'Added to waiting list for selected slot';
+    }
 
-    // Return created reservation along with assigned table details
-    res.status(201).json({
-      reservation: {
-        ...mapId(reservation),
-        table: {
-          _id: table.id,
-          tableNumber: table.tableNumber,
-          capacity: table.capacity,
-          status: table.status,
-        },
-      },
-    });
+    res.status(201).json(response);
   } catch (err) {
     res.status(500).json({ message: "Error creating reservation" });
   }

@@ -10,6 +10,7 @@ export const Reservation = sequelize.define("Reservation", {
   phone: { type: DataTypes.STRING, allowNull: false },
   date: { type: DataTypes.DATEONLY, allowNull: false },
   time: { type: DataTypes.STRING, allowNull: false },
+  status: { type: DataTypes.ENUM('confirmed','waiting'), defaultValue: 'confirmed' },
   guests: { type: DataTypes.INTEGER, allowNull: false },
   tableId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true } // FK
 }, { timestamps: true });
