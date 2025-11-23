@@ -53,6 +53,7 @@ const AdminTable = () => {
               <th className='p-3'>Phone</th>
               <th className='p-3'>Date</th>
               <th className='p-3'>Time</th>
+              <th className='p-3'>Table</th>
               <th className='p-3'>Guests</th>
               <th className='p-3'>Delete</th>
             </tr>
@@ -72,6 +73,7 @@ const AdminTable = () => {
                     <td className='p-3'>{res.phone}</td>
                     <td className='p-3'>{res.date}</td>
                     <td className='p-3'>{res.time}</td>
+                    <td className='p-3'>{res.table?.tableNumber ?? '-'}</td>
                     <td className='p-3'>{res.guests}</td>
                     <td className='p-3'>
                       <button onClick={() => handleDelete(res._id)} className='bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600'>Delete</button>

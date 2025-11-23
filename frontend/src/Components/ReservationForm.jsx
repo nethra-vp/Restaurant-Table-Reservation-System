@@ -23,7 +23,13 @@ const ReservationForm = () => {
 
     try {
       const response = await axios.post(backendUrl + "/api/reservations/create", formData);
-      toast.success("Reservation Successful");
+      // If backend returns assigned table, show it to the user
+      const assignedTable = response.data?.reservation?.table?.tableNumber || response.data?.tableNumber;
+      if (assignedTable) {
+        toast.success(`Reservation successful`);
+      } else {
+        toast.success("Reservation Successful");
+      }
       setFormData({
         name: "",
         email: "",

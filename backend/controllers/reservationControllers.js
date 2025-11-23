@@ -66,7 +66,18 @@ export const createReservation = async (req, res) => {
     // mark table as reserved
     await table.update({ status: "Reserved" });
 
-    res.status(201).json(mapId(reservation));
+    // Return created reservation along with assigned table details
+    res.status(201).json({
+      reservation: {
+        ...mapId(reservation),
+        table: {
+          _id: table.id,
+          tableNumber: table.tableNumber,
+          capacity: table.capacity,
+          status: table.status,
+        },
+      },
+    });
   } catch (err) {
     res.status(500).json({ message: "Error creating reservation" });
   }
