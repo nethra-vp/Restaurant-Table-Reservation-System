@@ -9,6 +9,7 @@ const ReservationForm = () => {
     name: "",
     email: "",
     phone: "",
+    date: "",
     time: "",
     guests: "1"
   })
@@ -21,20 +22,23 @@ const ReservationForm = () => {
     e.preventDefault()
 
     try {
-      await axios.post(backendUrl + "/api/reservations/create", formData)
-      toast.success("Reservation Successful")
-
+      const response = await axios.post(backendUrl + "/api/reservations/create", formData);
+      toast.success("Reservation Successful");
       setFormData({
         name: "",
         email: "",
         phone: "",
         date: "",
         time: "",
-        guests: ""
-      })
+        guests: "1"
+      });
     } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Reservation failed");
+      }
       console.log(error);
-      
     }
   }
 
@@ -73,7 +77,7 @@ const ReservationForm = () => {
             </div>
             <div className='grid gap-1.5'>
               <label htmlFor="" className='font-bold'>Reservation Date: </label>
-              <input type="date" name='date' value={formData.date} onChange={handleChanges} onClick={(e) => e.target.showPicker && e.target.showPicker()} min={new Date().toISOString().split("T")[0]} requiredclassName='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300'/>
+              <input type="date" name='date' value={formData.date} onChange={handleChanges} onClick={(e) => e.target.showPicker && e.target.showPicker()} min={new Date().toISOString().split("T")[0]} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300'/>
             </div>
             <div className='grid gap-1.5'>
               <label htmlFor="" className='font-bold'>Time of Reservation: </label>

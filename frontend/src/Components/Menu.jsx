@@ -75,18 +75,26 @@ const Menu = () => {
         {displayedProducts.length > 0 ? (
           displayedProducts.map((product) => (
             <div
-              key={product._id}
+              key={product.id || product._id || Math.random()}
               className="flex items-center gap-6 p-4 border border-gray-100 rounded-xl shadow-sm transition hover:shadow-md"
             >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-28 h-28 object-cover rounded-full"
-                onError={(e) => {
-                  e.currentTarget.onerror = null
-                  e.currentTarget.src = '/assets/upload_img.png'
-                }}
-              />
+              {product.image ? (
+                <img
+                  src={`${backendUrl}/uploads/${product.image}`}
+                  alt={product.name}
+                  className="w-24 h-24 object-cover rounded-lg"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/assets/upload_img.png';
+                  }}
+                />
+              ) : (
+                <img
+                  src="/assets/upload_img.png"
+                  alt="No image"
+                  className="w-24 h-24 object-cover rounded-lg"
+                />
+              )}
               <div className="flex-1">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>

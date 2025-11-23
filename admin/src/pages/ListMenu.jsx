@@ -14,13 +14,13 @@ const ListMenu = ({token}) => {
     try {
       const response = await axios.post(
         backendUrl + '/api/product/remove', 
-        { _id: id },
+        { id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
         toast.success(response.data.message);
-        setList(list.filter(item => item._id !== id));
+        setList(list.filter(item => (item.id || item._id) !== id));
       } else {
         toast.error(response.data.message);
       }
@@ -61,13 +61,13 @@ const ListMenu = ({token}) => {
           <b className='text-center'>Action</b>
         </div>
 
-        {list.map((item, index) => 
-        <div key={index} className='grid grid-cols-[1fr_3fr_1fr_1fr_1fr] items-center p-2 border-b-2 border-gray-300 text-lg'>
-          <img src={item.image} alt=""  className='w-[50px] h-auto'/>
+        {list.map((item) => 
+        <div key={item.id || item._id} className='grid grid-cols-[1fr_3fr_1fr_1fr_1fr] items-center p-2 border-b-2 border-gray-300 text-lg'>
+          <img src={item.image ? `${backendUrl}/uploads/${item.image}` : '/assets/upload_img.png'} alt={item.name} className='w-[50px] h-auto'/>
           <p>{item.name}</p>
           <p>{item.category}</p>
           <p>{item.price}</p>
-          <MdDeleteForever className='ml-10 text-[28px] cursor-pointer text-red-700' onClick={() => handleDelete(item._id)}/>
+          <MdDeleteForever className='ml-10 text-[28px] cursor-pointer text-red-700' onClick={() => handleDelete(item.id || item._id)}/>
         </div>)}
 
       </div>

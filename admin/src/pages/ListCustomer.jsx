@@ -30,7 +30,7 @@ const ListCustomer = () => {
       const res = await axios.delete(`${backendUrl}/api/customer/remove/${id}`)
       if (res.data.success) {
         toast.success("Customer removed successfully")
-        setCustomers(customers.filter(c => c._id !== id))
+        setCustomers(customers.filter(c => (c.id || c._id) !== id))      
       } else {
         toast.error(res.data.message || "Failed to delete customer")
       }
@@ -62,7 +62,7 @@ const ListCustomer = () => {
       ) : (
         customers.map((customer) => (
           <div
-            key={customer._id}
+            key={customer.id || customer._id}
             className="grid grid-cols-[2fr_2fr_2fr_1fr] items-center gap-4 py-3 border-b hover:bg-gray-50 transition"
           >
             <span>{customer.name}</span>
@@ -70,7 +70,7 @@ const ListCustomer = () => {
             <span>{customer.phone}</span>
             <MdDeleteForever
               className="text-red-600 text-2xl cursor-pointer hover:text-red-800 transition"
-              onClick={() => deleteCustomer(customer._id)}
+              onClick={() => deleteCustomer(customer.id || customer._id)}
             />
           </div>
         ))

@@ -7,11 +7,16 @@ const router = express.Router();
 router.post("/add", async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    const customer = new Customer({ name, email, phone });
-    await customer.save();
-    res.json({ success: true, message: "Customer added successfully!", customer });
+
+    const result = await Customer.create({ name, email, phone });
+
+    res.json({
+      success: true,
+      message: "Customer added successfully!",
+      customer: { id: result.insertId, name, email, phone },
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Error adding customer:", error);
     res.status(500).json({ success: false, message: "Failed to add customer", error });
   }
 });
@@ -19,9 +24,10 @@ router.post("/add", async (req, res) => {
 // Get all customers
 router.get("/list", async (req, res) => {
   try {
-    const customers = await Customer.find();
+    const customers = await Customer.findAll();
     res.json({ success: true, customers });
   } catch (error) {
+    console.error("Error fetching customers:", error);
     res.status(500).json({ success: false, message: "Failed to fetch customers", error });
   }
 });
@@ -29,9 +35,15 @@ router.get("/list", async (req, res) => {
 // Delete a customer
 router.delete("/remove/:id", async (req, res) => {
   try {
-    await Customer.findByIdAndDelete(req.params.id);
+    const id = req.params.id;
+    const customer = await Customer.findByPk(id);
+    if (!customer) {
+      return res.status(404).json({ success: false, message: "Customer not found" });
+    }
+    await customer.destroy();
     res.json({ success: true, message: "Customer removed successfully" });
   } catch (error) {
+    console.error("Error removing customer:", error);
     res.status(500).json({ success: false, message: "Failed to remove customer", error });
   }
 });

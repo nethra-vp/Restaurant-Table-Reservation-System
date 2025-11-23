@@ -1,13 +1,19 @@
-import mongoose from 'mongoose'
+// models/reservationModels.js
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/mysql.js";
+import { Table } from "./tableModel.js";
 
-const reservationSchema = new mongoose.Schema({
-    name: {type:String, required: true},
-    email: {type:String, required: true},
-    phone: {type:String, required: true},
-    date: {type:String, required: true},
-    time: {type:String, required: true},
-    guests: {type:Number, required: true}, 
-    table: { type: mongoose.Schema.Types.ObjectId, ref: "Table" }
-})
+export const Reservation = sequelize.define("Reservation", {
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, allowNull: false },
+  phone: { type: DataTypes.STRING, allowNull: false },
+  date: { type: DataTypes.DATEONLY, allowNull: false },
+  time: { type: DataTypes.STRING, allowNull: false },
+  guests: { type: DataTypes.INTEGER, allowNull: false },
+  tableId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true } // FK
+}, { timestamps: true });
 
-export default mongoose.model("Reservation", reservationSchema)
+// ----- RELATIONSHIPS -----
+Reservation.belongsTo(Table, { foreignKey: "tableId", as: "table" });
+Table.hasMany(Reservation, { foreignKey: "tableId", as: "reservations" });

@@ -6,6 +6,17 @@ import { toast } from 'react-toastify'
 const AdminTable = () => {
   const [reservations, setReservations] = useState([])
 
+  // Fetch reservations function
+  const fetchReservations = async () => {
+    try {
+      const response = await axios.get(backendUrl + '/api/reservations/get')
+      setReservations(response.data.reservations || [])
+      console.log(response.data);
+    } catch (error) {
+      console.log("Error fetching reservations");
+    }
+  }
+
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this reservation?")
     if(!confirmDelete) return;
@@ -15,7 +26,8 @@ const AdminTable = () => {
 
       if(response.data.success) {
         toast.success(response.data.message || 'Reservation removed')
-        setReservations(prev => prev.filter(res => res._id !== id))
+        // Always re-fetch reservations from backend for latest data
+        await fetchReservations();
       }
       else {
         toast.error(response.data.message || "Failed to delete reservation")
@@ -27,18 +39,7 @@ const AdminTable = () => {
   }
 
   useEffect(() => {
-    const fetchReservations = async () => {
-      try {
-        const response = await axios.get(backendUrl + '/api/reservations/get')
-        setReservations(response.data.reservations || [])
-        console.log(response.data);
-        
-      } catch (error) {
-        console.log("Error fetching reservations");
-      }
-    }
-
-    fetchReservations()
+    fetchReservations();
   }, [])
   return (
     <div>

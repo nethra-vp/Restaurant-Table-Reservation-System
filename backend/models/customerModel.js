@@ -1,11 +1,13 @@
-import mongoose from "mongoose";
+// models/customerModel.js
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/mysql.js";
+import db from "../config/db.js";
 
-const customerSchema = new mongoose.Schema({
-  name: {type: String, required: true, trim: true},
-  email: {type: String, required: true, trim: true, unique: true},
-  phone: {type: String, required: true, trim: true},
-  createdAt: {type: Date, default: Date.now}
-});
+export const Customer = sequelize.define("Customer", {
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, allowNull: false },
+  phone: { type: DataTypes.STRING, allowNull: false }
+}, { timestamps: true });
 
-const Customer = mongoose.model("Customer", customerSchema);
 export default Customer;

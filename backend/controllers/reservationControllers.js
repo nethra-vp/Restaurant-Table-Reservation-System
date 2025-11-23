@@ -1,112 +1,112 @@
-import reservationModels from "../models/reservationModels.js";
-import Customer from "../models/customerModel.js";
-import Table from "../models/tableModel.js";
+// controllers/reservationControllers.js
+import { Reservation } from "../models/reservationModels.js";
+import { Table } from "../models/tableModel.js";
+import { Op } from "sequelize";
 
-// CREATE Reservation
+// map Sequelize id → _id
+function mapId(instance) {
+  if (!instance) return null;
+  return { ...instance.get(), _id: instance.id };
+}
+
+// ----------- AUTO-ASSIGN TABLE ------------
+async function findSmallestAvailableTable(guests, date, time) {
+  const tables = await Table.findAll({
+    where: { status: "Available", capacity: { [Op.gte]: guests } },
+    order: [["capacity", "ASC"]],
+  });
+
+  return tables.length > 0 ? tables[0] : null;
+}
+
+// ----------- CREATE RESERVATION -----------
 export const createReservation = async (req, res) => {
   try {
+    console.log('Reservation request body:', req.body);
     const { name, email, phone, date, time, guests } = req.body;
 
-    // basic validation
     if (!name || !email || !phone || !date || !time || !guests) {
-      return res.json({ success: false, message: "All fields are required" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Prevent selecting a past date
-    const today = new Date();
-    const selectedDate = new Date(date);
-    today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      return res.json({
-        success: false,
-        message: "Reservation date cannot be in the past",
-      });
+    // Prevent past dates
+    const today = new Date().setHours(0, 0, 0, 0);
+    const reqDate = new Date(date).setHours(0, 0, 0, 0);
+    if (reqDate < today) {
+      return res.status(400).json({ message: "Cannot reserve past dates" });
     }
 
-    // find smallest available table that fits guests
-    const table = await Table.findOne({
-      status: "Available",
-      capacity: { $gte: guests },
-    }).sort({ capacity: 1 });
-
+    // Auto table assign
+    const table = await findSmallestAvailableTable(guests, date, time);
     if (!table) {
-      return res.json({
-        success: false,
-        message: "No available table for this number of guests",
-      });
+      return res.status(400).json({ message: "No suitable table available for the selected time and guest count" });
     }
 
-    // reserve that table
-    table.status = "Reserved";
-    await table.save();
+    // Create or update customer
+    const { Customer } = await import("../models/customerModel.js");
+    let customer = await Customer.findOne({ where: { email } });
+    if (!customer) {
+      customer = await Customer.create({ name, email, phone });
+    } else {
+      // Optionally update name/phone if changed
+      await customer.update({ name, phone });
+    }
 
-    // save reservation with table reference
-    const reservation = new reservationModels({
+    const reservation = await Reservation.create({
       name,
       email,
       phone,
       date,
       time,
       guests,
-      table: table._id,
-    });
-    await reservation.save();
-
-    // add customer if not exists
-    const existingCustomer = await Customer.findOne({
-      $or: [{ email }, { phone }],
+      tableId: table.id,
+      customerId: customer.id,
     });
 
-    if (!existingCustomer) {
-      const newCustomer = new Customer({ name, email, phone });
-      await newCustomer.save();
-    }
+    // mark table as reserved
+    await table.update({ status: "Reserved" });
 
-    return res.status(201).json({
-      success: true,
-      message: "Reservation created successfully and table reserved",
-      reservation,
-      table,
-    });
-  } catch (error) {
-    console.error("Error creating reservation:", error);
-    return res.status(500).json({ success: false, message: "Error creating reservation" });
+    res.status(201).json(mapId(reservation));
+  } catch (err) {
+    res.status(500).json({ message: "Error creating reservation" });
   }
 };
 
-// GET all reservations (populates table)
-export const getAllReservations = async (req, res) => {
+// ----------- GET ALL ----------------------
+export const getReservations = async (req, res) => {
   try {
-    const reservations = await reservationModels.find().populate("table");
-    return res.json({ success: true, reservations });
-  } catch (error) {
-    console.error("Error fetching reservations:", error);
-    return res.status(500).json({ success: false, message: "Error fetching reservations" });
+    const reservations = await Reservation.findAll({
+      include: [{ model: Table, as: "table" }],
+      order: [["id", "DESC"]],
+    });
+
+    res.json({
+      reservations: reservations.map((r) => ({
+        ...mapId(r),
+        table: mapId(r.table),
+      }))
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching reservations" });
   }
 };
 
-// DELETE reservation and free table
+// ----------- DELETE -----------------------
 export const deleteReservation = async (req, res) => {
   try {
-    const { id } = req.params;
-    const reservation = await reservationModels.findById(id);
+    const reservation = await Reservation.findByPk(req.params.id);
+    if (!reservation)
+      return res.status(404).json({ message: "Reservation not found" });
 
-    if (!reservation) {
-      return res.status(404).json({ success: false, message: "Reservation not found" });
-    }
+    const table = await Table.findByPk(reservation.tableId);
 
-    // free table if assigned
-    if (reservation.table) {
-      await Table.findByIdAndUpdate(reservation.table, { status: "Available" });
-    }
+    await reservation.destroy();
 
-    await reservationModels.findByIdAndDelete(id);
+    // free table
+    if (table) await table.update({ status: "Available" });
 
-    return res.json({ success: true, message: "Reservation removed and table freed" });
-  } catch (error) {
-    console.error("Error deleting reservation:", error);
-    return res.status(500).json({ success: false, message: "Error deleting reservation" });
+    res.json({ message: "Reservation deleted", _id: req.params.id });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting reservation" });
   }
 };

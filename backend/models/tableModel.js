@@ -1,15 +1,12 @@
-import mongoose from "mongoose";
+// models/tableModel.js
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/mysql.js";
 
-const tableSchema = new mongoose.Schema({
-  tableNumber: {type: Number, required: true, unique: true},
-  capacity: {type: Number, required: true},
-  status: {
-    type: String, 
-    enum: ["Available", "Reserved"], 
-    default: "Available"
-  },
-  createdAt: {type: Date, default: Date.now},
-});
+export const Table = sequelize.define("Table", {
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+  tableNumber: { type: DataTypes.INTEGER, allowNull: false, unique: true },
+  capacity: { type: DataTypes.INTEGER, allowNull: false },
+  status: { type: DataTypes.ENUM("Available", "Reserved"), defaultValue: "Available" }
+}, { timestamps: false });
 
-const Table = mongoose.model("Table", tableSchema);
 export default Table;
