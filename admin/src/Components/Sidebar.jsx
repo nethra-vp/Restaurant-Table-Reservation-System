@@ -41,7 +41,7 @@ const Sidebar = ({setToken}) => {
 
         <NavLink to = '/tables' className="flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-500 hover:text-white">
           <MdTableBar className='text-[35px] text-black'/>
-          <p className='hidden md:block text-base'>Tables</p>
+          <p className='hidden md:block text-base'>Table Management</p>
         </NavLink>
 
         <button onClick = {() => setToken("")} className='flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-600 hover:text-white w-full text-left'>
