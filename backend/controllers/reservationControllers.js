@@ -1,6 +1,7 @@
 // controllers/reservationControllers.js
 import { Reservation } from "../models/reservationModels.js";
 import { Table } from "../models/tableModel.js";
+import { Customer } from "../models/customerModel.js";
 import { Op } from "sequelize";
 
 // map Sequelize id → _id
@@ -13,22 +14,41 @@ function mapId(instance) {
 async function findSmallestAvailableTable(guests, date, time) {
   // parse requested time slot into minutes since midnight
   function parseSlot(slot) {
-    // expected format: "H:MM AM - H:MM PM" or similar
-    const parts = slot.split('-').map(s => s.trim());
-    const toMinutes = (t) => {
-      const [time, period] = t.split(' ');
-      const [h, m] = time.split(':').map(Number);
-      let hour = h % 12;
-      if (period.toUpperCase() === 'PM') hour += 12;
-      return hour * 60 + (m || 0);
+    // Supported inputs:
+    // - Range label like "11:00 AM - 12:00 PM"
+    // - Simple time string like "11:00" or "11:00:00" (24h)
+    if (!slot) return null;
+    // If range with '-' present, parse AM/PM parts
+    if (slot.includes('-')) {
+      const parts = slot.split('-').map(s => s.trim());
+      const toMinutes = (t) => {
+        const [timePart, period] = t.split(' ').length === 2 ? t.split(' ') : [t, null];
+        const [h, m] = timePart.split(':').map(Number);
+        let hour = h || 0;
+        if (period) {
+          hour = h % 12;
+          if (period.toUpperCase() === 'PM') hour += 12;
+        }
+        return hour * 60 + (m || 0);
+      }
+      try {
+        const start = toMinutes(parts[0]);
+        const end = toMinutes(parts[1]);
+        return { start, end };
+      } catch (e) {
+        return null;
+      }
     }
-    try {
-      const start = toMinutes(parts[0]);
-      const end = toMinutes(parts[1]);
-      return { start, end };
-    } catch (e) {
-      return null;
-    }
+
+    // Otherwise assume a single time (HH:MM or HH:MM:SS), treat as start, 1 hour slot
+    const timeOnly = slot.trim();
+    const [hStr, mStr] = timeOnly.split(':');
+    const h = Number(hStr || 0);
+    const m = Number(mStr || 0);
+    if (isNaN(h) || isNaN(m)) return null;
+    const start = h * 60 + m;
+    const end = start + 60; // default 1 hour slot
+    return { start, end };
   }
 
   const reqSlot = parseSlot(time);
@@ -80,14 +100,8 @@ export const createReservation = async (req, res) => {
 
     // Auto table assign (per date + time slot)
     const table = await findSmallestAvailableTable(guests, date, time);
-    let reservationStatus = 'confirmed';
     let assignedTableId = null;
-    if (!table) {
-      // No suitable table for that date/time — place on waiting list
-      reservationStatus = 'waiting';
-    } else {
-      assignedTableId = table.id;
-    }
+    if (table) assignedTableId = table.id;
 
     // Create or update customer
     const { Customer } = await import("../models/customerModel.js");
@@ -99,20 +113,21 @@ export const createReservation = async (req, res) => {
       await customer.update({ name, phone });
     }
 
+    // Store reservation referencing customer and table (if assigned). Time is stored as TIME/string per DB schema.
     const reservation = await Reservation.create({
-      name,
-      email,
-      phone,
+      customerId: customer.id,
+      tableId: assignedTableId,
       date,
       time,
       guests,
-      tableId: assignedTableId,
-      customerId: customer.id,
-      status: reservationStatus,
     });
 
     // If confirmed, mark the table as Reserved and return assigned table details.
     const response = { reservation: { ...mapId(reservation) } };
+    // include customer info on response for frontend convenience
+    response.reservation.name = customer.name;
+    response.reservation.email = customer.email;
+    response.reservation.phone = customer.phone;
     if (assignedTableId) {
       // Update the table status to Reserved
       await table.update({ status: "Reserved" });
@@ -137,7 +152,10 @@ export const createReservation = async (req, res) => {
 export const getReservations = async (req, res) => {
   try {
     const reservations = await Reservation.findAll({
-      include: [{ model: Table, as: "table" }],
+      include: [
+        { model: Table, as: "table" },
+        { model: Customer, as: "customer" }
+      ],
       order: [["id", "DESC"]],
     });
 
@@ -145,6 +163,10 @@ export const getReservations = async (req, res) => {
       reservations: reservations.map((r) => ({
         ...mapId(r),
         table: mapId(r.table),
+        // expose customer details flattened for frontend compatibility
+        name: r.customer?.name || null,
+        email: r.customer?.email || null,
+        phone: r.customer?.phone || null,
       }))
     });
   } catch (err) {

@@ -24,9 +24,10 @@ const ReservationForm = () => {
     try {
       const response = await axios.post(backendUrl + "/api/reservations/create", formData);
       const reservation = response.data?.reservation || response.data
-      if (reservation?.status === 'waiting') {
+      // If backend assigned a table it will be present under reservation.table
+      if (!reservation?.table) {
         toast.info('No table available for the selected slot — you have been placed on the waiting list')
-      } else if (reservation?.table?.tableNumber) {
+      } else if (reservation.table.tableNumber) {
         toast.success(`Reservation confirmed — Table ${reservation.table.tableNumber}`)
       } else {
         toast.success('Reservation successful')
@@ -55,7 +56,10 @@ const ReservationForm = () => {
       const startHour = hour % 12 === 0 ? 12 : hour % 12
       const startPeriod = hour < 12 ? "AM" : "PM"
 
-      slots.push(`${startHour}:00 ${startPeriod}`)
+      // value is stored as HH:MM:SS (suitable for MySQL TIME)
+      const value = `${String(hour).padStart(2,'0')}:00:00`
+      const label = `${startHour}:00 ${startPeriod}`
+      slots.push({ value, label })
     }
     return slots
   }
@@ -88,7 +92,7 @@ const ReservationForm = () => {
               <select name='time' value={formData.time} onChange={handleChanges} required className='w-full p-3 mb-3 border rounded-lg focus:ring focus:ring-blue-300 text-gray-500 font-normal'>
                 <option value="">Select Time</option>
                 {generateTimeSlots().map((slot, index) => (
-                  <option key={index} value={slot}>{slot}</option>
+                  <option key={index} value={slot.value}>{slot.label}</option>
                 ))}
               </select>
             </div>

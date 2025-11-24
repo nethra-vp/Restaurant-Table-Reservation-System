@@ -8,12 +8,13 @@ router.post("/add", async (req, res) => {
   try {
     const { name, email, phone } = req.body;
 
-    const result = await Customer.create({ name, email, phone });
-
+    console.log('/api/customer/add payload:', { name, email, phone });
+    const created = await Customer.create({ name, email, phone });
+    const customerObj = created.get ? created.get() : created;
     res.json({
       success: true,
       message: "Customer added successfully!",
-      customer: { id: result.insertId, name, email, phone },
+      customer: { id: customerObj.id, name: customerObj.name, email: customerObj.email, phone: customerObj.phone },
     });
   } catch (error) {
     console.error("Error adding customer:", error);

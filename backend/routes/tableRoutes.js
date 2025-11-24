@@ -10,6 +10,7 @@ const router = express.Router();
 router.post("/add", async (req, res) => {
   try {
     const { tableNumber, capacity } = req.body;
+    console.log('API /api/table/add payload:', { tableNumber, capacity });
 
     // Check duplicate table number
     const existingTable = await Table.findOne({ where: { tableNumber } });
@@ -20,7 +21,9 @@ router.post("/add", async (req, res) => {
       });
     }
 
+
     const table = await Table.create({ tableNumber, capacity });
+    console.log('Created table (sequelize):', table.get());
 
     // Map id → _id
     const responseTable = { ...table.get(), _id: table.id };

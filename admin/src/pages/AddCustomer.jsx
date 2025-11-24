@@ -25,7 +25,9 @@ const AddCustomer = () => {
       const startHour = hour % 12 === 0 ? 12 : hour % 12
       const startPeriod = hour < 12 ? "AM" : "PM"
 
-      slots.push(`${startHour}:00 ${startPeriod}`)
+      const value = `${String(hour).padStart(2,'0')}:00:00`
+      const label = `${startHour}:00 ${startPeriod}`
+      slots.push({ value, label })
     }
     return slots
   }
@@ -50,9 +52,9 @@ const AddCustomer = () => {
 
       const res = await axios.post(`${backendUrl}/api/reservations/create`, payload)
       const reservation = res.data?.reservation || res.data
-      if (reservation?.status === 'waiting') {
+      if (!reservation?.table) {
         toast.info('No table available for the selected slot — the reservation is on the waiting list')
-      } else if (reservation?.table?.tableNumber) {
+      } else if (reservation.table.tableNumber) {
         toast.success(`Reservation confirmed — Table ${reservation.table.tableNumber}`)
       } else {
         toast.success('Reservation created successfully!')
@@ -131,7 +133,7 @@ const AddCustomer = () => {
               <select name='time' value={formData.time} onChange={handleChange} required className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-amber-400 focus:outline-none text-gray-500 font-normal">
                 <option value="">Select Time</option>
                 {generateTimeSlots().map((slot, index) => (
-                  <option key={index} value={slot}>{slot}</option>
+                  <option key={index} value={slot.value}>{slot.label}</option>
                 ))}
               </select>
             </div>

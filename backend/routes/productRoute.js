@@ -12,7 +12,7 @@ router.post("/add", adminAuth, upload.single("image"), async (req, res) => {
     const image = req.file ? req.file.filename : null;
 
     const sql = `
-      INSERT INTO products (name, price, description, category, image)
+      INSERT INTO products (product_name, product_price, product_description, product_category, product_image)
       VALUES (?, ?, ?, ?, ?)
     `;
 
@@ -28,7 +28,18 @@ router.post("/add", adminAuth, upload.single("image"), async (req, res) => {
 // ------------------ LIST PRODUCTS ------------------
 router.get("/list", async (req, res) => {
   try {
-    const [rows] = await db.query(`SELECT * FROM products`);
+    const [rows] = await db.query(`
+      SELECT
+        product_id AS id,
+        product_name AS name,
+        product_description AS description,
+        product_category AS category,
+        product_price AS price,
+        product_image AS image,
+        created_at AS createdAt
+      FROM products
+    `);
+
     res.json({ success: true, products: rows });
   } catch (error) {
     console.error("LIST PRODUCTS ERROR:", error);
@@ -41,7 +52,7 @@ router.post("/remove", adminAuth, async (req, res) => {
   try {
     const { id } = req.body;
 
-    await db.query(`DELETE FROM products WHERE id = ?`, [id]);
+    await db.query(`DELETE FROM products WHERE product_id = ?`, [id]);
 
     res.json({ success: true, message: "Product removed successfully" });
   } catch (error) {
@@ -55,7 +66,18 @@ router.get("/single", async (req, res) => {
   try {
     const { id } = req.query;
 
-    const [rows] = await db.query(`SELECT * FROM products WHERE id = ?`, [id]);
+    const [rows] = await db.query(`
+      SELECT
+        product_id AS id,
+        product_name AS name,
+        product_description AS description,
+        product_category AS category,
+        product_price AS price,
+        product_image AS image,
+        created_at AS createdAt
+      FROM products
+      WHERE product_id = ?
+    `, [id]);
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: "Product not found" });

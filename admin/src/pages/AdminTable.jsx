@@ -75,7 +75,7 @@ const AdminTable = () => {
                     <td className='p-3'>{res.time}</td>
                     <td className='p-3'>
                       {res.table?.tableNumber ?? '-'}
-                      {res.status === 'waiting' && (
+                      {!res.table && (
                         <span className='ml-2 text-sm text-yellow-700 font-semibold'>(Waiting)</span>
                       )}
                     </td>
