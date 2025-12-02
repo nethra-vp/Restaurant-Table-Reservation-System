@@ -7,11 +7,12 @@ import AdminTable from './pages/AdminTable'
 import ListCustomer from './pages/ListCustomer'
 import AddCustomer from './pages/AddCustomer'
 import ListTable from './pages/ListTable'
+import Orders from './pages/Orders'
 import {Routes, Route, Navigate} from 'react-router-dom'
 import {ToastContainer} from 'react-toastify'
 
 export const backendUrl = 'http://localhost:4000'
-export const currency = "$"
+export const currency = "₹"
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem('token') || "")
@@ -41,6 +42,7 @@ const App = () => {
                   <Route path = '/customers' element = {<ListCustomer token = {token} />} />
                   <Route path = '/add-customer' element = {<AddCustomer token = {token} />} />
                   <Route path = '/tables' element = {<ListTable token = {token} />} />
+                  <Route path = '/orders' element = {<Orders token = {token} />} />
                 </Routes>
               </div>
             </div>

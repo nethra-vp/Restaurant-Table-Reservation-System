@@ -36,10 +36,12 @@ import userRouter from './routes/userRoute.js';
 import productRouter from './routes/productRoute.js';
 import reservationRouter from './routes/reservationRoute.js';
 import customerRoutes from './routes/customerRoutes.js';
+import orderRouter from './routes/orderRoute.js';
 app.use('/api/user', userRouter);
 app.use('/api/product', productRouter);
 app.use('/api/reservations', reservationRouter);
 app.use('/api/customer', customerRoutes);
+app.use('/api/orders', orderRouter);
 
 // Start server
 const PORT = process.env.PORT || 4000;
