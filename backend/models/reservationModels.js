@@ -11,6 +11,9 @@ export const Reservation = sequelize.define("Reservation", {
   date: { type: DataTypes.DATEONLY, allowNull: false, field: 'reservation_date' },
   time: { type: DataTypes.TIME, allowNull: false, field: 'reservation_time' },
   guests: { type: DataTypes.INTEGER, allowNull: false }
+  ,
+  cancellationToken: { type: DataTypes.STRING, allowNull: true, field: 'cancellation_token' },
+  cancellationTokenExpiry: { type: DataTypes.DATE, allowNull: true, field: 'cancellation_token_expiry' }
 }, { tableName: 'reservations', timestamps: false });
 
 // ----- RELATIONSHIPS -----

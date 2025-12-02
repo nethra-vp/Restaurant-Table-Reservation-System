@@ -3,6 +3,8 @@ import { Reservation } from "../models/reservationModels.js";
 import { Table } from "../models/tableModel.js";
 import { Customer } from "../models/customerModel.js";
 import { Op } from "sequelize";
+import crypto from 'crypto';
+import { sendCancellationEmail, sendConfirmationEmail } from '../utils/mailer.js';
 
 // map Sequelize id → _id
 function mapId(instance) {
@@ -114,12 +116,22 @@ export const createReservation = async (req, res) => {
     }
 
     // Store reservation referencing customer and table (if assigned). Time is stored as TIME/string per DB schema.
+    // If a table was assigned, generate a cancellation token valid for 5 minutes and send email.
+    let cancellationToken = null;
+    let cancellationTokenExpiry = null;
+    if (assignedTableId) {
+      cancellationToken = crypto.randomBytes(32).toString('hex');
+      cancellationTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    }
+
     const reservation = await Reservation.create({
       customerId: customer.id,
       tableId: assignedTableId,
       date,
       time,
       guests,
+      cancellationToken,
+      cancellationTokenExpiry,
     });
 
     // If confirmed, mark the table as Reserved and return assigned table details.
@@ -138,6 +150,14 @@ export const createReservation = async (req, res) => {
         capacity: table.capacity,
         status: table.status,
       };
+      // send confirmation email (includes cancellation link valid for 5 minutes)
+      try {
+        const cancelLink = await sendConfirmationEmail(customer.email, cancellationToken, { date, time, guests });
+        // expose cancel link in response for development/testing when SMTP is not configured
+        if (cancelLink) response.reservation.cancelLink = cancelLink;
+      } catch (err) {
+        console.error('Failed to send confirmation email:', err);
+      }
     } else {
       response.reservation.message = 'Added to waiting list for selected slot';
     }
@@ -167,6 +187,8 @@ export const getReservations = async (req, res) => {
         name: r.customer?.name || null,
         email: r.customer?.email || null,
         phone: r.customer?.phone || null,
+        cancellationToken: r.cancellationToken || null,
+        cancellationTokenExpiry: r.cancellationTokenExpiry || null,
       }))
     });
   } catch (err) {
@@ -191,5 +213,67 @@ export const deleteReservation = async (req, res) => {
     res.json({ message: "Reservation deleted", _id: req.params.id });
   } catch (err) {
     res.status(500).json({ message: "Error deleting reservation" });
+  }
+};
+
+// ----------- CANCEL BY TOKEN ----------------
+async function performCancellationByToken(token) {
+  if (!token) return { ok: false, code: 'missing', message: 'Token required' };
+
+  const reservation = await Reservation.findOne({ where: { cancellationToken: token } });
+  if (!reservation) return { ok: false, code: 'not_found', message: 'Invalid cancellation token' };
+
+  const now = new Date();
+  const expiry = reservation.cancellationTokenExpiry ? new Date(reservation.cancellationTokenExpiry) : null;
+  if (!expiry || now > expiry) {
+    return { ok: false, code: 'expired', message: 'Expired link or cancellation window closed' };
+  }
+
+  const table = await Table.findByPk(reservation.tableId);
+  const tableInfo = table ? { id: table.id, tableNumber: table.tableNumber } : null;
+
+  // capture reservation id to return after deletion
+  const reservationId = reservation.id;
+
+  await reservation.destroy();
+  if (table) await table.update({ status: 'Available' });
+
+  return { ok: true, code: 'cancelled', message: 'Reservation cancelled successfully', reservationId, table: tableInfo };
+}
+
+export const cancelReservationByToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const result = await performCancellationByToken(token);
+    if (!result.ok) {
+      const status = result.code === 'expired' || result.code === 'missing' ? 400 : 404;
+      return res.status(status).json({ message: result.message });
+    }
+    return res.json({ success: true, message: result.message });
+  } catch (err) {
+    console.error('Error cancelling by token:', err);
+    return res.status(500).json({ message: 'Error cancelling reservation' });
+  }
+};
+
+// Render a friendly HTML page when customer clicks cancellation link
+export const cancelReservationPage = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const result = await performCancellationByToken(token);
+
+    // Simple HTML styled to match admin UI colors (amber)
+    const frontUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    if (!result.ok) {
+      const message = result.message || 'Unable to cancel reservation';
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Cancellation</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Inter,system-ui,Arial,sans-serif;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;margin:0} .card{background:#fff;padding:28px;border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,0.08);max-width:600px;text-align:center} .title{color:#92400e;font-weight:700;margin-bottom:12px} .msg{margin-bottom:18px} .btn{display:inline-block;padding:10px 20px;background:#f59e0b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600}</style></head><body><div class="card"><h1 class="title">Cancellation</h1><p class="msg">${message}</p><a class="btn" href="${frontUrl}">Return to site</a></div></body></html>`;
+      return res.status(result.code === 'expired' ? 400 : 404).send(html);
+    }
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Reservation Cancelled</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Inter,system-ui,Arial,sans-serif;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;margin:0} .card{background:#fff;padding:28px;border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,0.08);max-width:600px;text-align:center} .title{color:#92400e;font-weight:700;margin-bottom:12px} .msg{margin-bottom:18px} .btn{display:inline-block;padding:10px 20px;background:#f59e0b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600}</style></head><body><div class="card"><h1 class="title">Reservation Cancelled</h1><p class="msg">Your reservation has been cancelled successfully.</p><a class="btn" href="${frontUrl}">Return to site</a></div></body></html>`;
+    return res.send(html);
+  } catch (err) {
+    console.error('Error rendering cancel page:', err);
+    return res.status(500).send('<h1>Server error</h1>');
   }
 };
