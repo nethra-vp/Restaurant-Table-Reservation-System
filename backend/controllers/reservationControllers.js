@@ -69,7 +69,8 @@ async function findSmallestAvailableTable(guests, date, time) {
   const reqSlot = parseSlot(time);
 
   const tables = await Table.findAll({
-    where: { capacity: { [Op.gte]: guests }, status: 'Available' },
+    // Do not rely on global table.status for availability — availability is per date/time
+    where: { capacity: { [Op.gte]: guests } },
     order: [["capacity", "ASC"]],
   });
 
@@ -148,6 +149,7 @@ export const createReservation = async (req, res) => {
     });
 
     // If confirmed, mark the table as Reserved and return assigned table details.
+    // If confirmed, return assigned table details. Do NOT change global table.status — reservation is date-specific.
     const response = { reservation: { ...mapId(reservation) } };
     // include customer info on response for frontend convenience
     response.reservation.name = customer.name;
@@ -156,9 +158,7 @@ export const createReservation = async (req, res) => {
     // include formatted time
     response.reservation.formattedTime = formatTimeTo12(reservation.time || time);
     if (assignedTableId) {
-      // Update the table status to Reserved
-      await table.update({ status: "Reserved" });
-      // return the updated table info
+      // return the assigned table info (do not modify table.status here)
       response.reservation.table = {
         _id: table.id,
         tableNumber: table.tableNumber,
@@ -186,7 +186,13 @@ export const createReservation = async (req, res) => {
 // ----------- GET ALL ----------------------
 export const getReservations = async (req, res) => {
   try {
+    const where = {};
+    // support date filter via query param ?date=YYYY-MM-DD
+    const filterDate = req.query?.date || req.dateFilter;
+    if (filterDate) where.date = filterDate.split('T')[0];
+
     const reservations = await Reservation.findAll({
+      where,
       include: [
         { model: Table, as: "table" },
         { model: Customer, as: "customer" }
@@ -224,11 +230,11 @@ export const deleteReservation = async (req, res) => {
 
     await reservation.destroy();
 
-    // free table
-    if (table) await table.update({ status: "Available" });
+    // Do not modify global table.status here; reservation removal frees only that date/time slot
 
     res.json({ message: "Reservation deleted", _id: req.params.id });
   } catch (err) {
+    console.error('Error deleting reservation:', err);
     res.status(500).json({ message: "Error deleting reservation" });
   }
 };
@@ -253,7 +259,7 @@ async function performCancellationByToken(token) {
   const reservationId = reservation.id;
 
   await reservation.destroy();
-  if (table) await table.update({ status: 'Available' });
+  // Do not change global table.status; removing reservation frees that date/time slot only
 
   return { ok: true, code: 'cancelled', message: 'Reservation cancelled successfully', reservationId, table: tableInfo };
 }

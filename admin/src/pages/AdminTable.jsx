@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 
 const AdminTable = () => {
   const [reservations, setReservations] = useState([])
+  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0])
 
   const formatTimeTo12 = (timeStr) => {
     if (!timeStr) return '';
@@ -21,7 +22,8 @@ const AdminTable = () => {
   // Fetch reservations function
   const fetchReservations = async () => {
     try {
-      const response = await axios.get(backendUrl + '/api/reservations/get')
+      const url = backendUrl + '/api/reservations/get' + (filterDate ? `?date=${filterDate}` : '')
+      const response = await axios.get(url)
       setReservations(response.data.reservations || [])
       console.log(response.data);
     } catch (error) {
@@ -53,10 +55,21 @@ const AdminTable = () => {
   useEffect(() => {
     fetchReservations();
   }, [])
+  
+  useEffect(() => {
+    // refetch when date filter changes
+    fetchReservations();
+  }, [filterDate])
   return (
     <div>
       <h2 className='text-3xl font-bold text-gray-700 text-center mb-6'>Restaurant Reservations</h2>
-      <div>
+      <div className='flex items-center justify-between mb-4'>
+        <div></div>
+        <div>
+          <label className='mr-2 font-medium'>Date:</label>
+          <input type='date' value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className='border p-2 rounded' />
+        </div>
+      </div>
         <table className='ml-10 w-full shadow-lg rounded-xl'>
           <thead>
             <tr className='bg-amber-500 text-left'>
@@ -102,7 +115,6 @@ const AdminTable = () => {
           </tbody>
         </table>
       </div>
-    </div>
   )
 }
 

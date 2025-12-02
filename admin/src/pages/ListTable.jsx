@@ -6,6 +6,8 @@ import { MdDeleteForever } from "react-icons/md";
 
 const ListTable = () => {
   const [tables, setTables] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [reservedTableIds, setReservedTableIds] = useState(new Set());
   const [newTable, setNewTable] = useState({ tableNumber: "", capacity: "" });
 
   const fetchTables = async () => {
@@ -17,6 +19,25 @@ const ListTable = () => {
       toast.error("Failed to fetch tables");
     }
   };
+
+  const fetchReservedForDate = async (date) => {
+    try {
+      const res = await axios.get(`${backendUrl}/api/reservations/get?date=${date}`);
+      const reservations = res.data.reservations || [];
+      const ids = new Set();
+      reservations.forEach(r => {
+        // reservation.table may be nested; prefer table.table_id or table._id or table.id
+        const t = r.table || {};
+        if (t.table_id) ids.add(t.table_id);
+        else if (t.id) ids.add(t.id);
+        else if (t._id) ids.add(t._id);
+      });
+      setReservedTableIds(ids);
+    } catch (err) {
+      console.error('Failed to fetch reservations for date', err);
+      setReservedTableIds(new Set());
+    }
+  }
 
   const addTable = async () => {
     try {
@@ -65,7 +86,12 @@ const ListTable = () => {
 
   useEffect(() => {
     fetchTables();
+    fetchReservedForDate(selectedDate);
   }, []);
+
+  useEffect(() => {
+    fetchReservedForDate(selectedDate);
+  }, [selectedDate]);
 
   return (
     <div className="p-4">
@@ -98,6 +124,10 @@ const ListTable = () => {
       </div>
 
       {/* Table List */}
+      <div className='mb-4 flex items-center justify-end'>
+        <label className='mr-2 font-medium'>View reservations for date:</label>
+        <input type='date' value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className='border px-3 py-2 rounded' />
+      </div>
       <div className="grid grid-cols-[1fr_1fr_1fr_auto_auto] font-semibold border-b pb-2 gap-8">
         <span>Table No.</span>
         <span>Capacity</span>
@@ -113,12 +143,8 @@ const ListTable = () => {
         >
           <span>{table.tableNumber}</span>
           <span>{table.capacity}</span>
-          <span
-            className={`font-semibold ${
-              table.status === "Available" ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {table.status}
+          <span className={`font-semibold ${table.status === "Available" ? "text-green-600" : "text-red-600"}`}>
+            {reservedTableIds.has(table._id) ? 'Reserved (selected date)' : table.status}
           </span>
 
           <button
