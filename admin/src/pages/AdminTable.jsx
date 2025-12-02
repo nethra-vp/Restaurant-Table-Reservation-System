@@ -6,6 +6,18 @@ import { toast } from 'react-toastify'
 const AdminTable = () => {
   const [reservations, setReservations] = useState([])
 
+  const formatTimeTo12 = (timeStr) => {
+    if (!timeStr) return '';
+    const parts = timeStr.split(':');
+    if (parts.length < 2) return timeStr;
+    const h = parseInt(parts[0], 10);
+    const m = parts[1] || '00';
+    if (isNaN(h)) return timeStr;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour12 = ((h + 11) % 12) + 1;
+    return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+  }
+
   // Fetch reservations function
   const fetchReservations = async () => {
     try {
@@ -72,7 +84,7 @@ const AdminTable = () => {
                     <td className='p-3'>{res.email}</td>
                     <td className='p-3'>{res.phone}</td>
                     <td className='p-3'>{res.date}</td>
-                    <td className='p-3'>{res.time}</td>
+                    <td className='p-3'>{res.formattedTime || formatTimeTo12(res.time)}</td>
                     <td className='p-3'>
                       {res.table?.tableNumber ?? '-'}
                       {!res.table && (

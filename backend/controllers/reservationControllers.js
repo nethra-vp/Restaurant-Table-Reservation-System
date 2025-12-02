@@ -12,6 +12,19 @@ function mapId(instance) {
   return { ...instance.get(), _id: instance.id };
 }
 
+function formatTimeTo12(timeStr) {
+  if (!timeStr) return '';
+  // timeStr expected as HH:MM or HH:MM:SS
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return timeStr;
+  const h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) return timeStr;
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hour12 = ((h + 11) % 12) + 1; // converts 0->12
+  return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 // ----------- AUTO-ASSIGN TABLE ------------
 async function findSmallestAvailableTable(guests, date, time) {
   // parse requested time slot into minutes since midnight
@@ -121,7 +134,7 @@ export const createReservation = async (req, res) => {
     let cancellationTokenExpiry = null;
     if (assignedTableId) {
       cancellationToken = crypto.randomBytes(32).toString('hex');
-      cancellationTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+      cancellationTokenExpiry = new Date(Date.now() + 2 * 60 * 1000); // 5 minutes
     }
 
     const reservation = await Reservation.create({
@@ -140,6 +153,8 @@ export const createReservation = async (req, res) => {
     response.reservation.name = customer.name;
     response.reservation.email = customer.email;
     response.reservation.phone = customer.phone;
+    // include formatted time
+    response.reservation.formattedTime = formatTimeTo12(reservation.time || time);
     if (assignedTableId) {
       // Update the table status to Reserved
       await table.update({ status: "Reserved" });
@@ -152,7 +167,7 @@ export const createReservation = async (req, res) => {
       };
       // send confirmation email (includes cancellation link valid for 5 minutes)
       try {
-        const cancelLink = await sendConfirmationEmail(customer.email, cancellationToken, { date, time, guests });
+        const cancelLink = await sendConfirmationEmail(customer.email, cancellationToken, { date, time: formatTimeTo12(time), guests });
         // expose cancel link in response for development/testing when SMTP is not configured
         if (cancelLink) response.reservation.cancelLink = cancelLink;
       } catch (err) {
@@ -187,6 +202,8 @@ export const getReservations = async (req, res) => {
         name: r.customer?.name || null,
         email: r.customer?.email || null,
         phone: r.customer?.phone || null,
+        // provide a human-friendly 12-hour time string for UI
+        formattedTime: formatTimeTo12(r.time),
         cancellationToken: r.cancellationToken || null,
         cancellationTokenExpiry: r.cancellationTokenExpiry || null,
       }))
