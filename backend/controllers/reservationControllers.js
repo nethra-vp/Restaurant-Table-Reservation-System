@@ -134,7 +134,7 @@ export const createReservation = async (req, res) => {
     let cancellationTokenExpiry = null;
     if (assignedTableId) {
       cancellationToken = crypto.randomBytes(32).toString('hex');
-      cancellationTokenExpiry = new Date(Date.now() + 2 * 60 * 1000); // 5 minutes
+      cancellationTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     }
 
     const reservation = await Reservation.create({
