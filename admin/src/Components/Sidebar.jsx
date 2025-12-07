@@ -1,6 +1,7 @@
 import React from 'react'
 import {NavLink} from 'react-router-dom'
 import {IoIosLogOut, IoMdAddCircleOutline} from 'react-icons/io'
+import { MdOutlineRestaurantMenu } from "react-icons/md";
 import {MdFormatListBulletedAdd} from 'react-icons/md'
 import {PiListBulletsFill} from 'react-icons/pi'
 import { BiSolidUserDetail } from "react-icons/bi";
@@ -20,8 +21,8 @@ const Sidebar = ({setToken}) => {
         </NavLink>
 
         <NavLink to = '/list' className="flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-500 hover:text-white">
-          <MdFormatListBulletedAdd className='text-[35px] text-black'/>
-          <p className='hidden md:block text-base'>List Product</p>
+          <MdOutlineRestaurantMenu className='text-[35px] text-black'/>
+          <p className='hidden md:block text-base'>Product List</p>
         </NavLink>
 
         <NavLink to = '/table' className="flex items-center gap-3 px-6 py-3 border-b-2 border-gray-200 text-gray-600 hover:bg-amber-500 hover:text-white">
