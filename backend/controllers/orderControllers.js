@@ -9,6 +9,16 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'customerId and productId are required' });
     }
 
+      // Validate quantity
+      const qty = parseInt(quantity);
+      if (isNaN(qty) || qty <= 0) {
+        return res.status(400).json({ success: false, message: 'Quantity must be a positive number' });
+      }
+
+      if (qty > 1000) {
+        return res.status(400).json({ success: false, message: 'Quantity cannot exceed 1000' });
+      }
+
     // Fetch product to snapshot price
     const [prodRows] = await db.query(
       `SELECT product_id, product_price FROM products WHERE product_id = ?`,
@@ -23,7 +33,7 @@ export const createOrder = async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO orders (customer_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)`,
-      [customerId, productId, quantity, unitPrice]
+        [customerId, productId, qty, unitPrice]
     );
 
     return res.json({ success: true, orderId: result.insertId });

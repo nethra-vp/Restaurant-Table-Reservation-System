@@ -26,7 +26,18 @@ const adminSignup = async (req, res) => {
             return res.json({ success: false, message: 'Email and password are required' })
         }
 
-        // Check if user already exists
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(email)) {
+                return res.json({ success: false, message: 'Invalid email format' })
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+                return res.json({ success: false, message: 'Password must be at least 6 characters' })
+            }
+
+            // Check if user already exists
         const existingUser = await User.findOne({ where: { email } })
         if (existingUser) {
             return res.json({ success: false, message: 'User already exists' })

@@ -11,12 +11,32 @@ router.post("/add", adminAuth, upload.single("image"), async (req, res) => {
     const { name, price, description, category } = req.body;
     const image = req.file ? req.file.filename : null;
 
+      // Validate required fields
+      if (!name || !price) {
+        return res.json({ success: false, message: 'Product name and price are required' });
+      }
+
+      // Validate name length
+      if (name.trim().length === 0 || name.length > 100) {
+        return res.json({ success: false, message: 'Product name must be 1-100 characters' });
+      }
+
+      // Validate price is a positive number
+      const priceNum = parseFloat(price);
+      if (isNaN(priceNum) || priceNum <= 0) {
+        return res.json({ success: false, message: 'Price must be a positive number' });
+      }
+
+      if (priceNum > 100000) {
+        return res.json({ success: false, message: 'Price cannot exceed 100000' });
+      }
+
     const sql = `
       INSERT INTO products (product_name, product_price, product_description, product_category, product_image)
       VALUES (?, ?, ?, ?, ?)
     `;
 
-    await db.query(sql, [name, price, description, category, image]);
+      await db.query(sql, [name, priceNum, description, category, image]);
 
     res.json({ success: true, message: "Product added successfully" });
   } catch (error) {
