@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Login from './Components/Login'
+import Signup from './Components/Signup'
 import Sidebar from './Components/Sidebar'
 import AddMenu from './pages/AddMenu'
 import ListMenu from './pages/ListMenu'
@@ -29,7 +30,13 @@ const App = () => {
     <div className='bg-white min-h-screen'>
       <ToastContainer/>
       {
-        !token ? (<Login setToken = {setToken}/>) : (
+        !token ? (
+          <Routes>
+            <Route path='/' element={<Login setToken = {setToken}/>} />
+            <Route path='/signup' element={<Signup setToken = {setToken}/>} />
+            <Route path='*' element={<Navigate to='/' replace />} />
+          </Routes>
+        ) : (
           <>
             <div className='flex w-full'>
               <Sidebar setToken = {setToken}/>

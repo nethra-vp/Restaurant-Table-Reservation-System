@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { User } from '../models/user.js'
 
 const adminLogin = async (req, res) => {
     try {
@@ -17,4 +18,33 @@ const adminLogin = async (req, res) => {
     }
 }
 
-export {adminLogin}
+const adminSignup = async (req, res) => {
+    try {
+        const { email, password } = req.body
+
+        if (!email || !password) {
+            return res.json({ success: false, message: 'Email and password are required' })
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ where: { email } })
+        if (existingUser) {
+            return res.json({ success: false, message: 'User already exists' })
+        }
+
+        // Create new user
+        const newUser = await User.create({
+            email,
+            password,
+            role: 'admin'
+        })
+
+        const token = jwt.sign(email + password, process.env.JWT_SECRET)
+        res.json({ success: true, token, message: 'Account created successfully' })
+    } catch (err) {
+        console.log(err)
+        res.json({ success: false, message: err.message })
+    }
+}
+
+export { adminLogin, adminSignup }

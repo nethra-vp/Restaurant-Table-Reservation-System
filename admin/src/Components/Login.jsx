@@ -43,8 +43,15 @@ const Login = ({setToken}) => {
                         <p className='text-sm font-semibold text-gray-600 mb-2'>Password</p>
                         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}placeholder="Enter password" required className='w-[95%] px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-gray-800' />
                     </div>
-                    <button type='submit' className='w-full px-3 py-2 text-lg font-bold bg-amber-500 rounded-md'>Login</button>
+                    <button type='submit' className='w-full px-3 py-2 text-lg font-bold bg-amber-500 rounded-md text-white hover:bg-amber-600'>Login</button>
                 </form>
+
+                <p className='text-center text-sm mt-4 text-gray-600'>
+                    Don't have an account?{' '}
+                    <a href='/signup' className='text-amber-500 font-semibold hover:underline'>
+                        Sign up
+                    </a>
+                </p>
             </div>
         </div>
     </div>
