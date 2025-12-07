@@ -1,9 +1,0 @@
-services:
-  - name: restaurant-table-reservation-system
-    type: web
-    env: node
-    region: oregon
-    buildCommand: "npm install"
-    startCommand: "npm start"
-    repo: https://github.com/nethra-vp/Restaurant-Table-Reservation-System.git
-    branch: main
