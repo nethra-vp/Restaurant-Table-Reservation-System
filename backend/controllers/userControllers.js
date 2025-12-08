@@ -1,13 +1,24 @@
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
 import { User } from '../models/user.js'
 
 const adminLogin = async (req, res) => {
     try {
         const {email, password} = req.body
 
-        if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-            const token = jwt.sign(email+password, process.env.JWT_SECRET)
-            res.json({success:true, token, message: 'Login Successful'})
+        // Find user by email
+        const user = await User.findOne({ where: { email } })
+        
+        if (!user) {
+            return res.json({success: false, message: 'Invalid Credential'})
+        }
+
+        // Compare password with hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password)
+        
+        if (isPasswordValid) {
+            const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET)
+            res.json({success: true, token, message: 'Login Successful'})
         }
         else {
             res.json({success: false, message: 'Invalid Credential'})
@@ -43,14 +54,17 @@ const adminSignup = async (req, res) => {
             return res.json({ success: false, message: 'User already exists' })
         }
 
-        // Create new user
+        // Hash password before storing
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        // Create new user with hashed password
         const newUser = await User.create({
             email,
-            password,
+            password: hashedPassword,
             role: 'admin'
         })
 
-        const token = jwt.sign(email + password, process.env.JWT_SECRET)
+        const token = jwt.sign({ userId: newUser.id, email: newUser.email }, process.env.JWT_SECRET)
         res.json({ success: true, token, message: 'Account created successfully' })
     } catch (err) {
         console.log(err)
