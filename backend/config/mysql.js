@@ -1,5 +1,4 @@
 import { Sequelize } from "sequelize";
-// ...existing code...
 
 // Load environment variables
 import dotenv from "dotenv";
@@ -21,8 +20,8 @@ export const sequelize = new Sequelize(
 export const connectMySQL = async () => {
   try {
     await sequelize.authenticate();
-    console.log("✅ MySQL Connected Successfully");
+    console.log("MySQL Connected Successfully");
   } catch (err) {
-    console.error("❌ MySQL Connection Error:", err);
+    console.error("MySQL Connection Error:", err);
   }
 };

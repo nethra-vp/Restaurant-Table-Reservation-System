@@ -10,8 +10,8 @@ import "../models/user.js";
 export const syncMySQL = async () => {
   try {
     await sequelize.sync({ alter: true });
-    console.log("📌 All MySQL models synced successfully");
+    console.log("All MySQL models synced successfully");
   } catch (err) {
-    console.error("❌ Sequelize sync error:", err);
+    console.error("Sequelize sync error:", err);
   }
 };
