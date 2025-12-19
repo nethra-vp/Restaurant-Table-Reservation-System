@@ -1,12 +1,9 @@
-// routes/tableRoutes.js
 import express from "express";
 import { Table } from "../models/tableModel.js";
 
 const router = express.Router();
 
-// ------------------------------
 // Create new table
-// ------------------------------
 router.post("/add", async (req, res) => {
   try {
     const { tableNumber, capacity } = req.body;
@@ -39,16 +36,14 @@ router.post("/add", async (req, res) => {
   }
 });
 
-// ------------------------------
 // List all tables
-// ------------------------------
 router.get("/list", async (req, res) => {
   try {
     const tables = await Table.findAll({ order: [["tableNumber", "ASC"]] });
 
     const formatted = tables.map((t) => ({
       ...t.get(),
-      _id: t.id, // frontend expects _id
+      _id: t.id,
     }));
 
     res.json({ success: true, tables: formatted });
@@ -62,9 +57,7 @@ router.get("/list", async (req, res) => {
   }
 });
 
-// ------------------------------
 // Toggle table status
-// ------------------------------
 router.patch("/toggle/:id", async (req, res) => {
   try {
     const { id } = req.params;

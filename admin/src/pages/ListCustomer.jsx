@@ -26,8 +26,10 @@ const ListCustomer = () => {
   const deleteCustomer = async (id) => {
     if (!window.confirm("Are you sure you want to delete this customer?")) return
 
+    console.log('Attempting to delete customer with ID:', id)
     try {
       const res = await axios.delete(`${backendUrl}/api/customer/remove/${id}`)
+      console.log('Delete response:', res.data)
       if (res.data.success) {
         toast.success("Customer removed successfully")
         setCustomers(customers.filter(c => (c.id || c._id) !== id))      
@@ -35,8 +37,8 @@ const ListCustomer = () => {
         toast.error(res.data.message || "Failed to delete customer")
       }
     } catch (error) {
-      console.error(error)
-      toast.error("Error deleting customer")
+      console.error('Delete error:', error.response?.data || error.message)
+      toast.error(error.response?.data?.message || "Error deleting customer")
     }
   }
 

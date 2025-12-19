@@ -1,6 +1,5 @@
 import { sequelize } from "./mysql.js";
 
-// Import all models once → they auto-register with Sequelize
 import "../models/customerModel.js";
 import "../models/productModels.js";
 import "../models/reservationModels.js";

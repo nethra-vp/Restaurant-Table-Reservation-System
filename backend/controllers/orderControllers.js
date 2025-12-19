@@ -43,7 +43,7 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// List orders. Optional filter: ?customerId=NN
+// List orders.
 export const getOrders = async (req, res) => {
   try {
     const { customerId } = req.query;

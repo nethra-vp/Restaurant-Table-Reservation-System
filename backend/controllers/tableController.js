@@ -2,7 +2,6 @@
 import { Table } from "../models/tableModel.js";
 import { Reservation } from "../models/reservationModels.js";
 
-// Helper
 function mapId(instance) {
   if (!instance) return null;
   return { ...instance.get(), _id: instance.id };

@@ -1,4 +1,3 @@
-// controllers/reservationControllers.js
 import { Reservation } from "../models/reservationModels.js";
 import { Table } from "../models/tableModel.js";
 import { Customer } from "../models/customerModel.js";
@@ -14,7 +13,6 @@ function mapId(instance) {
 
 function formatTimeTo12(timeStr) {
   if (!timeStr) return '';
-  // timeStr expected as HH:MM or HH:MM:SS
   const parts = timeStr.split(':');
   if (parts.length < 2) return timeStr;
   const h = parseInt(parts[0], 10);
@@ -29,9 +27,6 @@ function formatTimeTo12(timeStr) {
 async function findSmallestAvailableTable(guests, date, time) {
   // parse requested time slot into minutes since midnight
   function parseSlot(slot) {
-    // Supported inputs:
-    // - Range label like "11:00 AM - 12:00 PM"
-    // - Simple time string like "11:00" or "11:00:00" (24h)
     if (!slot) return null;
     // If range with '-' present, parse AM/PM parts
     if (slot.includes('-')) {
@@ -55,14 +50,13 @@ async function findSmallestAvailableTable(guests, date, time) {
       }
     }
 
-    // Otherwise assume a single time (HH:MM or HH:MM:SS), treat as start, 1 hour slot
     const timeOnly = slot.trim();
     const [hStr, mStr] = timeOnly.split(':');
     const h = Number(hStr || 0);
     const m = Number(mStr || 0);
     if (isNaN(h) || isNaN(m)) return null;
     const start = h * 60 + m;
-    const end = start + 60; // default 1 hour slot
+    const end = start + 60;
     return { start, end };
   }
 
@@ -85,7 +79,6 @@ async function findSmallestAvailableTable(guests, date, time) {
         conflict = true;
         break;
       }
-      // overlap if not (newEnd <= exStart || newStart >= exEnd)
       if (!(reqSlot.end <= exSlot.start || reqSlot.start >= exSlot.end)) {
         conflict = true;
         break;
@@ -149,7 +142,7 @@ export const createReservation = async (req, res) => {
     });
 
     // If confirmed, mark the table as Reserved and return assigned table details.
-    // If confirmed, return assigned table details. Do NOT change global table.status — reservation is date-specific.
+    // If confirmed, return assigned table details.
     const response = { reservation: { ...mapId(reservation) } };
     // include customer info on response for frontend convenience
     response.reservation.name = customer.name;
@@ -279,13 +272,11 @@ export const cancelReservationByToken = async (req, res) => {
   }
 };
 
-// Render a friendly HTML page when customer clicks cancellation link
 export const cancelReservationPage = async (req, res) => {
   try {
     const { token } = req.params;
     const result = await performCancellationByToken(token);
 
-    // Simple HTML styled to match admin UI colors (amber)
     const frontUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     if (!result.ok) {
       const message = result.message || 'Unable to cancel reservation';

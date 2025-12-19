@@ -18,7 +18,7 @@ export const Reservation = sequelize.define("Reservation", {
 
 // ----- RELATIONSHIPS -----
 Reservation.belongsTo(Table, { foreignKey: "tableId", as: "table" });
-Table.hasMany(Reservation, { foreignKey: "tableId", as: "reservations" });
+Table.hasMany(Reservation, { foreignKey: "tableId", as: "reservations", onDelete: "CASCADE" });
 // link reservation → customer
 Reservation.belongsTo(Customer, { foreignKey: "customerId", as: "customer" });
-Customer.hasMany(Reservation, { foreignKey: "customerId", as: "customerReservations" });
+Customer.hasMany(Reservation, { foreignKey: "customerId", as: "customerReservations", onDelete: "CASCADE" });

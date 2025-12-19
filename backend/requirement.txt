@@ -14,4 +14,4 @@ multer - which serve as a middleware for uploading file upload in NodeJS and is 
 
 jsonwebtoken - which is a package used for creating and verifying JSON web tokens which help us with user authentication and authorization
 
-cloudinary - which is a cloud based service that helps store and manage and optimize images and video that often use for uploading and saving media files. (we are using cloudinary for image )
+cloudinary - which is a cloud based service that helps store and manage and optimize images and video that often use for uploading and saving media files. (we are using cloudinary for image )x

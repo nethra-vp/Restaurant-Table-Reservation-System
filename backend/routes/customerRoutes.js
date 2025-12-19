@@ -33,19 +33,25 @@ router.get("/list", async (req, res) => {
   }
 });
 
-// Delete a customer
+// Delete a customer and their related reservations/orders
 router.delete("/remove/:id", async (req, res) => {
   try {
     const id = req.params.id;
+    console.log('DELETE customer request received for ID:', id);
     const customer = await Customer.findByPk(id);
+    console.log('Customer found:', customer ? `${customer.name} (ID: ${customer.id})` : 'NOT FOUND');
     if (!customer) {
       return res.status(404).json({ success: false, message: "Customer not found" });
     }
     await customer.destroy();
+    console.log('Customer deleted successfully');
     res.json({ success: true, message: "Customer removed successfully" });
   } catch (error) {
     console.error("Error removing customer:", error);
-    res.status(500).json({ success: false, message: "Failed to remove customer", error });
+    if (error.message.includes("foreign key")) {
+      return res.status(400).json({ success: false, message: "Cannot delete customer with existing reservations or orders. Delete those first." });
+    }
+    res.status(500).json({ success: false, message: "Failed to remove customer", error: error.message });
   }
 });
 
